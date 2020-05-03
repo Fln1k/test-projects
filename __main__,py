@@ -1,0 +1,60 @@
+import smtplib
+import cv2
+import os
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+
+
+class Camera:
+    cam = None
+
+    def __init__(self):
+        pass
+
+    def get_screen_shot(self):
+        self.cam = cv2.VideoCapture(0)
+        for i in range(30):
+            self.cam.read()
+        ret, frame = self.cam.read()
+        cv2.imwrite('cam.png', frame)
+        self.cam.release()
+        cv2.destroyAllWindows()
+        return True
+
+
+class Mailer:
+    owner = "example@example.com"
+    camera = None
+    mailer = None
+
+    def __init__(self, service, port):
+        self.mailer = smtplib.SMTP(service, port)
+        self.camera = Camera()
+
+    def login(self, login, password):
+        if self.mailer:
+            self.mailer.starttls()
+            self.mailer.login(login, password)
+        else:
+            print("error when log in into mailer")
+
+    def send_mail(self, receiver, text):
+        self.camera.get_screen_shot()
+        img_data = open('cam.png', 'rb').read()
+        os.remove("cam.png")
+        msg = MIMEMultipart()
+        msg['Subject'] = 'subject'
+        msg['From'] = 'e@mail.cc'
+        msg['To'] = 'e@mail.cc'
+        text = MIMEText("test")
+        msg.attach(text)
+        image = MIMEImage(img_data, name="screen")
+        msg.attach(image)
+        self.mailer.sendmail(self.owner, receiver, msg.as_string())
+
+
+
+mailer = Mailer('***', ***)
+mailer.login('***', '***')
+mailer.send_mail("***", "***")
